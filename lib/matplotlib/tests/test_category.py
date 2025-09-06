@@ -112,6 +112,20 @@ class TestStrCategoryConverter:
             actual = self.cc.convert(data, self.unit, self.ax)
         np.testing.assert_allclose(actual, np.array([1., 2., 3.]))
 
+    def test_convert_empty_array_no_warning(self):
+        """Test that empty arrays don't trigger deprecation warning."""
+        import warnings
+        # Capture all warnings to ensure no deprecation warning is raised
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            actual = self.cc.convert([], self.unit, self.ax)
+            # Check that no MatplotlibDeprecationWarning was raised
+            deprecation_warnings = [warning for warning in w 
+                                  if issubclass(warning.category, MatplotlibDeprecationWarning)]
+            assert len(deprecation_warnings) == 0, f"Unexpected deprecation warning: {deprecation_warnings}"
+        # Should return empty array
+        np.testing.assert_array_equal(actual, np.array([]))
+
     @pytest.mark.parametrize("fvals", fvalues, ids=fids)
     def test_convert_fail(self, fvals):
         with pytest.raises(TypeError):
